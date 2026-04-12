@@ -70,7 +70,17 @@ function buildSystemPrompt(products, returningPet) {
     .join("\n");
 
   const ret = returningPet
-    ? `\nTERUGKERENDE KLANT — herken direct en begin met:\n"Welkom terug! Ik heb ${returningPet.name} nog in mijn geheugen (${returningPet.breed||returningPet.species}, ${returningPet.weight_kg||"?"}kg). Zoeken we weer voor hem/haar, of is er iets veranderd?"\nProfiel: ${JSON.stringify(returningPet)}\n`
+    ? `\nTERUGKERENDE KLANT — gebruik UITSLUITEND de onderstaande gegevens. Verzin NOOIT details die er niet instaan.
+Naam dier: ${returningPet.name}
+Soort: ${returningPet.species || "onbekend"}
+Ras: ${returningPet.breed || "onbekend"}
+Gewicht: ${returningPet.weight_kg ? returningPet.weight_kg + "kg" : "onbekend"}
+Gesteriliseerd: ${returningPet.neutered ? "ja" : "nee/onbekend"}
+Gezondheid: ${returningPet.health_notes || "geen notities"}
+Leefstijl: ${returningPet.lifestyle || "onbekend"}
+
+Begin het gesprek met EXACT dit profiel. Zeg alleen wat je weet. Vul NIETS in wat niet bovenstaande staat.
+Begroet de klant terug: "Welkom terug! Ik heb ${returningPet.name} nog in mijn geheugen (${returningPet.breed || returningPet.species}, ${returningPet.weight_kg ? returningPet.weight_kg + "kg" : "gewicht onbekend"}). Zoeken we weer voor hem/haar, of is er iets veranderd?"\n`
     : "";
 
   return `Je bent Snuf — de AI voedingsadviseur van PetsRefill Westland, hyperlokalale bezorgservice in Westland (NL).
@@ -94,11 +104,13 @@ NATVOER KAT:\n${fmt(byCat["natvoer_kat"])}
 KATTENBAK:\n${fmt(byCat["kattenbak"])}
 SNACKS:\n${fmt(byCat["snack"])}
 
-ADVIESREGELS:
-1. Geef ALTIJD twee voer-producten: primair (Royal Canin) + alternatief (Advance/Acana)
+ADVIESREGELS — STRIKT VOLGEN:
+1. Geef ALTIJD twee voer-producten: primair (Royal Canin — bewezen, herkenbaar) + alternatief (Advance of Acana — hogere marge)
 2. Overweeg een COMBINATIE droog+nat als dat beter is voor het dier
-3. Voeg een relevante SNACK/aanvulling toe als dat waarde toevoegt (dental, articular, reward)
-4. Als het beste product buiten assortiment valt: eerlijk zeggen, Marc kan sourcen
+3. Voeg een relevante snack of aanvulling toe als dat meerwaarde heeft (dental, articular, beloning)
+4. ABSOLUUT VERBOD: je mag UITSLUITEND producten aanbevelen die letterlijk in bovenstaand assortiment staan, met een handle die je daar ziet. Noem NOOIT producten, merken of handles die niet in de lijst staan — ook niet ter vergelijking of informatie. Hill's, Eukanuba, Purina, Orijen, Farmina, Royal Canin Veterinary en andere niet-gelistede producten zijn verboden.
+5. Als het ideale product niet in het assortiment zit: zeg dit eerlijk en bied het beste beschikbare alternatief aan. Zeg: "Dat product voeren wij niet, maar het beste alternatief uit ons assortiment is [product] omdat..."
+6. Als een klant vraagt naar een specifiek niet-aangeboden product: geef het dichtstbijzijnde alternatief en leg uit waarom.
 
 EINDADVIES — gebruik dit EXACTE formaat:
 [schrijf warm persoonlijk advies]
@@ -157,6 +169,17 @@ function sugBag(prod, dosis) {
 function PCard({ handle, name, dosis, label, petName, products, isPrimary, isExtra }) {
   const prod = products?.find(p=>p.shopify_handle===handle);
   if (!handle||handle==="GEEN"||!name||name==="GEEN") return null;
+
+  // Laag 2 validatie: handle bestaat niet in ons assortiment
+  if (products?.length > 0 && !prod) {
+    return (
+      <div style={{ background:"#fff8f0", borderRadius:12, padding:"12px 14px", border:"2px solid #f59e0b" }}>
+        <div style={{ fontSize:13, color:"#92400e", fontFamily:"Georgia,serif" }}>
+          ⚠️ <strong>{name}</strong> staat momenteel niet in ons assortiment. Marc kijkt of dit te sourcen valt via VDM.
+        </div>
+      </div>
+    );
+  }
   const isL  = prod?.unit==="L";
   const sb   = prod ? sugBag(prod, dosis) : null;
   const days = sb&&dosis>0&&!isL ? Math.round(sb/dosis) : null;
@@ -187,6 +210,112 @@ function PCard({ handle, name, dosis, label, petName, products, isPrimary, isExt
   );
 }
 
+function RequestForm({ petName, petId, customerId }) {
+  const [open, setOpen]       = useState(false);
+  const [text, setText]       = useState("");
+  const [sent, setSent]       = useState(false);
+  const [saving, setSaving]   = useState(false);
+
+  const G = "#2D6A4F", GL = "#B7E4C7", GC = "#F8F4EE", GD = "#1B3A2E";
+
+  const submit = async () => {
+    if (!text.trim()) return;
+    setSaving(true);
+
+    // Sla op in Supabase
+    try {
+      await fetch("/api/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          request_text: text.trim(),
+          pet_name: petName || null,
+          customer_id: customerId || null,
+          pet_id: petId || null,
+        }),
+      });
+    } catch {}
+
+    setSaving(false);
+    setSent(true);
+  };
+
+  const waMsg = encodeURIComponent(
+    `Hoi Marc! Ik wil graag een product aanvragen dat Snuf niet aanbeval.\n\n` +
+    `Aanvraag: ${text.trim()}\n` +
+    `Voor: ${petName || "mijn dier"}\n` +
+    `Adres: [vul in]\n\n` +
+    `Verzonden via Snuf op petsrefillwestland.nl 🐾`
+  );
+
+  if (sent) return (
+    <div style={{ background:"#f0faf4", border:`1px solid ${GL}`, borderRadius:10, padding:"12px 14px", fontSize:13, fontFamily:"Georgia,serif" }}>
+      <div style={{ color:G, fontWeight:700, marginBottom:6 }}>✅ Aanvraag ontvangen!</div>
+      <div style={{ color:"#555", marginBottom:10 }}>Marc bekijkt of hij dit kan sourcen en laat het weten.</div>
+      <a href={`https://wa.me/31600000000?text=${waMsg}`} target="_blank" rel="noopener noreferrer"
+        style={{ display:"block", textAlign:"center", padding:"9px 12px", borderRadius:9, background:"#25D366", color:"#fff", fontWeight:600, textDecoration:"none", fontSize:13 }}>
+        📲 Stuur ook een WhatsApp naar Marc
+      </a>
+    </div>
+  );
+
+  if (!open) return (
+    <button onClick={() => setOpen(true)} style={{
+      width:"100%", padding:"10px 14px", borderRadius:10,
+      border:`1.5px dashed ${GL}`, background:"transparent",
+      color:"#888", fontFamily:"Georgia,serif", fontSize:13,
+      cursor:"pointer", textAlign:"left",
+    }}>
+      🔍 Ander product zoeken of aanvragen bij Marc?
+    </button>
+  );
+
+  return (
+    <div style={{ background:"#fafafa", border:`1.5px solid ${GL}`, borderRadius:12, padding:"12px 14px" }}>
+      <div style={{ fontWeight:700, fontSize:13, color:G, marginBottom:6, fontFamily:"Georgia,serif" }}>
+        📋 Product aanvragen
+      </div>
+      <div style={{ fontSize:12, color:"#888", fontFamily:"Georgia,serif", marginBottom:10 }}>
+        Zoek je iets specifieks? Omschrijf het zo goed mogelijk — merk, type, maat — en Marc kijkt of hij het kan sourcen.
+      </div>
+      <textarea
+        value={text}
+        onChange={e => setText(e.target.value)}
+        placeholder={`Bijv: "Hills Science Diet voor katten met nierprobleem, 1,5kg" of "Orijen Six Fish voor honden"`}
+        rows={3}
+        style={{
+          width:"100%", padding:"9px 12px", borderRadius:9,
+          border:`1.5px solid ${GL}`, fontFamily:"Georgia,serif",
+          fontSize:13, color:GD, outline:"none", background:"#fff",
+          resize:"none", boxSizing:"border-box",
+        }}
+        onFocus={e=>e.target.style.borderColor=G}
+        onBlur={e=>e.target.style.borderColor=GL}
+      />
+      <div style={{ display:"flex", gap:8, marginTop:8 }}>
+        <button onClick={submit} disabled={saving || !text.trim()} style={{
+          flex:1, padding:"10px", borderRadius:9, border:"none",
+          background: !text.trim() ? "#ccc" : G,
+          color:"#fff", fontFamily:"Georgia,serif", fontSize:13,
+          fontWeight:600, cursor: !text.trim() ? "default" : "pointer",
+        }}>
+          {saving ? "Versturen…" : "Aanvraag versturen"}
+        </button>
+        <button onClick={() => setOpen(false)} style={{
+          padding:"10px 14px", borderRadius:9,
+          border:`1.5px solid #ddd`, background:"transparent",
+          color:"#aaa", fontFamily:"Georgia,serif", fontSize:13, cursor:"pointer",
+        }}>
+          ✕
+        </button>
+      </div>
+      <div style={{ fontSize:11, color:"#bbb", marginTop:6, fontFamily:"Georgia,serif" }}>
+        Marc ontvangt de aanvraag en laat weten of het leverbaar is.
+      </div>
+    </div>
+  );
+}
+
 function ResultCards({ data, products }) {
   if (!data) return null;
   return (
@@ -195,9 +324,11 @@ function ResultCards({ data, products }) {
       <PCard handle={data.p1h} name={data.p1n} dosis={data.p1d} label={data.p1l} petName={data.name} products={products} isPrimary/>
       <PCard handle={data.p2h} name={data.p2n} dosis={data.p2d} label={data.p2l} petName={data.name} products={products}/>
       <PCard handle={data.exh} name={data.exn} dosis={0} label={data.exl} petName={data.name} products={products} isExtra/>
+      <RequestForm petName={data.name}/>
     </div>
   );
 }
+
 
 function SaveForm({ snufData, messages }) {
   const [name,setName]=useState(""); const [phone,setPhone]=useState("");
@@ -343,12 +474,13 @@ export default function App() {
   const push=(role,content,image)=>{ const id=Date.now()+Math.random(); setLastId(id); setDisplay(d=>[...d,{role,content,id,image}]); };
   const sysPrompt = buildSystemPrompt(products, returningPet);
 
-  const callClaude = async msgs => {
+  const callClaude = async (msgs, petOverride) => {
     const final = msgs.filter(m=>m.role==="user").length>=4;
     setLoading(true); if(final) setGenFinal(true);
+    const prompt = buildSystemPrompt(products, petOverride !== undefined ? petOverride : returningPet);
     try {
       const res=await fetch("/api/chat",{ method:"POST", headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1600, system:sysPrompt, messages:msgs }) });
+        body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1600, system:prompt, messages:msgs }) });
       const data=await res.json();
       const text=data.content?.[0]?.text||"Er ging iets mis. Probeer het opnieuw.";
       setApi([...msgs,{role:"assistant",content:text}]);
@@ -409,7 +541,7 @@ export default function App() {
 
         <div style={{ background:"#EDE9E2", padding:"13px 10px", minHeight:340, maxHeight:460, overflowY:"auto", display:"flex", flexDirection:"column" }}>
           {phase==="animal"&&showPhoneLookup&&(
-            <PhoneLookup onFound={data=>{ const pet=data.customer?.pets?.[0]; if(pet){setReturningPet(pet);setPetName(pet.name);} setShowPhoneLookup(false); setPhase("chat"); const msgs=[{role:"user",content:pet?`Ik ben terug voor ${pet.name}.`:"Ik wil advies."}]; setApi(msgs); callClaude(msgs); }} onSkip={()=>setShowPhoneLookup(false)}/>
+            <PhoneLookup onFound={data=>{ const pet=data.customer?.pets?.[0]; if(pet){setReturningPet(pet);setPetName(pet.name);} setShowPhoneLookup(false); setPhase("chat"); const msgs=[{role:"user",content:pet?`Ik ben terug voor ${pet.name}.`:"Ik wil advies."}]; setApi(msgs); callClaude(msgs, pet||null); }} onSkip={()=>setShowPhoneLookup(false)}/>
           )}
           {display.map((msg,i)=>(
             <Bubble key={msg.id} msg={msg} isNew={msg.id===lastId}
