@@ -9,28 +9,104 @@ const WHATSAPP_NUMBER = "31600000000"; // ← jouw zakelijk WhatsApp-nummer (zon
 // ─────────────────────────────────────────────────────────────────────────────
 
 const PRODUCTS = {
-  "Royal Canin Mini Adult":             { url: "/products/royal-canin-mini-adult",            bags: [2000,4000,8000],    ppkg: 11 },
-  "Royal Canin Medium Adult":           { url: "/products/royal-canin-medium-adult",          bags: [4000,10000,15000],  ppkg: 10 },
-  "Royal Canin Maxi Adult":             { url: "/products/royal-canin-maxi-adult",            bags: [10000,15000],       ppkg: 9  },
-  "Royal Canin Mini Puppy":             { url: "/products/royal-canin-mini-puppy",            bags: [2000,4000,8000],    ppkg: 16 },
-  "Royal Canin Medium Puppy":           { url: "/products/royal-canin-medium-puppy",          bags: [4000,10000],        ppkg: 15 },
-  "Royal Canin Maxi Puppy":             { url: "/products/royal-canin-maxi-puppy",            bags: [10000,15000],       ppkg: 13 },
-  "Royal Canin Medium Senior":          { url: "/products/royal-canin-medium-senior",         bags: [3000,10000],        ppkg: 9  },
-  "Royal Canin Maxi Senior":            { url: "/products/royal-canin-maxi-senior",           bags: [3000,10000],        ppkg: 8  },
-  "Royal Canin Indoor Adult":           { url: "/products/royal-canin-indoor-adult",          bags: [2000,4000,10000],   ppkg: 12 },
-  "Royal Canin Sterilised":             { url: "/products/royal-canin-sterilised",            bags: [2000,4000,10000],   ppkg: 11 },
-  "Royal Canin Kitten":                 { url: "/products/royal-canin-kitten",                bags: [2000,4000,10000],   ppkg: 16 },
-  "Royal Canin Senior Consult Stage 1": { url: "/products/royal-canin-senior-consult",        bags: [1500,3500],         ppkg: 10 },
-  "Royal Canin Persian Adult":          { url: "/products/royal-canin-persian-adult",         bags: [2000,4000,10000],   ppkg: 11 },
-  "Advance Adult Medium":               { url: "/products/advance-adult-medium",              bags: [3000,12000],        ppkg: 10 },
-  "Advance Sensitive":                  { url: "/products/advance-sensitive",                 bags: [1500,3000],         ppkg: 11 },
-  "Advance Adult Sterilised":           { url: "/products/advance-adult-sterilised",          bags: [1500,3000],         ppkg: 11 },
-  "Acana Grasslands":                   { url: "/products/acana-grasslands",                  bags: [2000,6000,11400],   ppkg: 10 },
-  "Acana Senior's Recipe":              { url: "/products/acana-seniors-recipe",              bags: [2000,6000],         ppkg: 9  },
-  "Acana Wild Prairie Cat":             { url: "/products/acana-wild-prairie-cat",            bags: [1800,4500],         ppkg: 12 },
-  "BioKat's Classic":                   { url: "/products/biokats-classic",                   bags: [20000,40000],       ppkg: null, unit:"L", usage:"±30 dagen per bak" },
-  "BioKat's Bianco Fresh":              { url: "/products/biokats-bianco-fresh",              bags: [20000],             ppkg: null, unit:"L", usage:"±30 dagen per bak" },
-  "BioKat's Micro":                     { url: "/products/biokats-micro",                     bags: [14000],             ppkg: null, unit:"L", usage:"±25 dagen per bak" },
+  // ── HOND · Royal Canin ────────────────────────────────────────────────────
+  "Royal Canin X-Small Adult":           { url: "/products/rc-x-small-adult-15kg",         bags: [1500],                ppkg: 12 },
+  "Royal Canin Mini Adult":              { url: "/products/rc-mini-adult",                  bags: [2000,4000,8000],      ppkg: 11 },
+  "Royal Canin Mini Adult 8+":           { url: "/products/rc-mini-adult-8-2kg",            bags: [2000],                ppkg: 10 },
+  "Royal Canin Mini Ageing 12+":         { url: "/products/rc-mini-ageing-12-1-5kg",        bags: [1500],                ppkg: 9  },
+  "Royal Canin Mini Light Weight Care":  { url: "/products/rc-mini-light-weight-care-3kg",  bags: [3000],                ppkg: 9  },
+  "Royal Canin Mini Puppy":              { url: "/products/rc-mini-puppy-junior-2kg",       bags: [2000],                ppkg: 16 },
+  "Royal Canin Medium Adult":            { url: "/products/rc-medium-adult",                bags: [4000,15000],          ppkg: 10 },
+  "Royal Canin Medium Puppy":            { url: "/products/rc-medium-puppy-4kg",            bags: [4000],                ppkg: 15 },
+  "Royal Canin Maxi Adult":              { url: "/products/rc-maxi-adult-15kg",             bags: [15000],               ppkg: 9  },
+  "Royal Canin Maxi Puppy":              { url: "/products/rc-maxi-puppy-4kg",              bags: [4000],                ppkg: 13 },
+  "Royal Canin Chihuahua Adult":         { url: "/products/rc-chihuahua",                   bags: [500,1500,3000],       ppkg: 12 },
+  "Royal Canin Dachshund Adult":         { url: "/products/rc-dachshund-adult-1-5kg",       bags: [1500],                ppkg: 11 },
+  "Royal Canin French Bulldog Adult":    { url: "/products/rc-french-bulldog-ad-3kg",       bags: [3000],                ppkg: 10 },
+  "Royal Canin Labrador Retriever Adult":{ url: "/products/rc-labrador-retr-ad-12kg",       bags: [12000],               ppkg: 9  },
+  "Royal Canin Sensible":                { url: "/products/rc-sensible",                    bags: [2000,10000],          ppkg: 10 },
+  "Royal Canin Oral Sensitive":          { url: "/products/rc-oral-sensitive-1-5kg",        bags: [1500],                ppkg: 11 },
+  // ── HOND · Advance ────────────────────────────────────────────────────────
+  "Advance Mini Adult":                  { url: "/products/advance-mini-adult",             bags: [1500,3000,7000],      ppkg: 11 },
+  "Advance Mini Sensitive":              { url: "/products/advance-mini-sensitive",          bags: [3000,7000],           ppkg: 11 },
+  "Advance Mini Senior":                 { url: "/products/advance-mini-senior-3kg",        bags: [3000],                ppkg: 9  },
+  "Advance Mini Light":                  { url: "/products/advance-mini-light-15kg",        bags: [1500],                ppkg: 9  },
+  "Advance Medium Adult":                { url: "/products/advance-medium-adult",           bags: [3000,14000],          ppkg: 10 },
+  "Advance Medium Senior":               { url: "/products/advance-medium-senior-12kg",     bags: [12000],               ppkg: 9  },
+  "Advance Maxi Adult":                  { url: "/products/advance-maxi-adult-14kg",        bags: [14000],               ppkg: 9  },
+  "Advance Maxi Senior":                 { url: "/products/advance-maxi-senior-12kg",       bags: [12000],               ppkg: 8  },
+  "Advance Maxi Light":                  { url: "/products/advance-maxi-light-12kg",        bags: [12000],               ppkg: 8  },
+  "Advance Sensitive Lamb/Rice":         { url: "/products/advance-sensitive-lambrice",     bags: [3000,12000],          ppkg: 11 },
+  "Advance Sensitive Salmon/Rice":       { url: "/products/advance-sensitive-salmonrice-12kg", bags: [12000],            ppkg: 11 },
+  "Advance Puppy Mini":                  { url: "/products/adv-puppy-protect-mini",         bags: [3000,7000],           ppkg: 16 },
+  "Advance Puppy Medium":                { url: "/products/advance-puppy-protect-medium-12kg", bags: [12000],            ppkg: 15 },
+  "Advance Puppy Maxi":                  { url: "/products/advance-puppy-protect-maxi-12kg",   bags: [12000],            ppkg: 13 },
+  "Advance French Bulldog Adult":        { url: "/products/advance-ad-french-bulldog-7-5kg",    bags: [7500],             ppkg: 10 },
+  "Advance Labrador Retriever Adult":    { url: "/products/advance-ad-labrador-retriever-11-5k",bags: [11500],            ppkg: 9  },
+  // ── HOND · Acana ─────────────────────────────────────────────────────────
+  "Acana Dog Adult":                     { url: "/products/acana-dog-adult-dog",            bags: [6000,11400,17000],    ppkg: 10 },
+  "Acana Dog Adult Small Breed":         { url: "/products/acana-adult-small-breed",        bags: [2000,6000],           ppkg: 11 },
+  "Acana Dog Adult Large Breed":         { url: "/products/acana-adult-large-breed-17kg",   bags: [17000],               ppkg: 9  },
+  "Acana Dog Senior":                    { url: "/products/acana-senior-dog",               bags: [6000,11400],          ppkg: 9  },
+  "Acana Dog Puppy":                     { url: "/products/acana-puppy",                    bags: [2000,6000,17000],     ppkg: 16 },
+  "Acana Dog Puppy Large Breed":         { url: "/products/acana-puppy-large-breed-17kg",   bags: [17000],               ppkg: 15 },
+  "Acana Dog Light & Fit":               { url: "/products/acana-light-fit",                bags: [6000,11400],          ppkg: 9  },
+  "Acana Dog Sport & Agility":           { url: "/products/acana-sport-agility-17kg",       bags: [17000],               ppkg: 11 },
+  "Acana Classics Classic Red":          { url: "/products/acana-classic-red",              bags: [2000,9700,14500],     ppkg: 10 },
+  "Acana Classics Prairie Poultry":      { url: "/products/acana-clas-prairie-poultry",     bags: [2000,9700,14500],     ppkg: 10 },
+  "Acana Classics Wild Coast":           { url: "/products/acana-clas-wild-coast",          bags: [2000,9700,14500],     ppkg: 10 },
+  "Acana HP Grasslands Dog":             { url: "/products/acana-hp-grasslands-dog-114kg",  bags: [11400],               ppkg: 10 },
+  "Acana HP Pacifica Dog":               { url: "/products/acana-hp-pacifica-dog-11-4kg",   bags: [11400],               ppkg: 10 },
+  "Acana HP Wild Prairie Dog":           { url: "/products/acana-hp-wild-prairie-dog-11-4kg",  bags: [11400],            ppkg: 10 },
+  "Acana HP Ranchlands Dog":             { url: "/products/acana-hp-ranchlands-dog-11-4kg", bags: [11400],               ppkg: 10 },
+  "Acana Singles Free-Run Duck":         { url: "/products/acana-singles-free-run-duck",    bags: [2000,11400],          ppkg: 10 },
+  "Acana Singles Grass-Fed Lamb":        { url: "/products/acana-singles-grass-fed-lamb",   bags: [2000,11400,17000],    ppkg: 10 },
+  "Acana Singles Yorkshire Pork":        { url: "/products/acana-singles-yorkshire-pork-6kg",  bags: [6000],             ppkg: 10 },
+  // ── KAT · Royal Canin ─────────────────────────────────────────────────────
+  "Royal Canin Babycat":                 { url: "/products/rc-babycat-400gr",               bags: [400],                 ppkg: 18 },
+  "Royal Canin Kitten":                  { url: "/products/rc-kitten",                      bags: [400,2000],            ppkg: 16 },
+  "Royal Canin Indoor":                  { url: "/products/rc-indoor",                      bags: [400,2000,4000],       ppkg: 12 },
+  "Royal Canin Fit":                     { url: "/products/rc-fit",                         bags: [2000,4000,10000],     ppkg: 12 },
+  "Royal Canin Outdoor":                 { url: "/products/rc-outdoor-2kg",                 bags: [2000],                ppkg: 13 },
+  "Royal Canin Sterilised":              { url: "/products/rc-sterilised",                  bags: [2000,4000,10000],     ppkg: 11 },
+  "Royal Canin British Shorthair":       { url: "/products/rc-british-shorthair-2kg",       bags: [2000],                ppkg: 11 },
+  "Royal Canin Maine Coon":              { url: "/products/rc-maine-coon-4kg",              bags: [4000],                ppkg: 11 },
+  "Royal Canin Urinary Care":            { url: "/products/rc-urinary-care-2kg",            bags: [2000],                ppkg: 11 },
+  // ── KAT · Advance ─────────────────────────────────────────────────────────
+  "Advance Cat Adult Chicken/Rice":      { url: "/products/advance-cat-adult-chickrice",    bags: [1500,3000,10000,15000], ppkg: 12 },
+  "Advance Cat Kitten":                  { url: "/products/advance-kitten-chickenrice",      bags: [1500,10000],          ppkg: 16 },
+  "Advance Cat Sterilized Turkey":       { url: "/products/advance-cat-sterilized-turkey",  bags: [3000,10000,15000],    ppkg: 11 },
+  "Advance Cat Sterilized Hairball":     { url: "/products/advance-cat-sterili-hairball",   bags: [1500,10000],          ppkg: 11 },
+  "Advance Cat Sterilized Sensitive Salmon": { url: "/products/advance-cat-sterilized-sensi", bags: [1500,10000],        ppkg: 11 },
+  "Advance Cat Sterilized Senior 10+":   { url: "/products/advance-cat-sterilized-senior10",bags: [1500,10000],          ppkg: 10 },
+  // ── KAT · Acana ───────────────────────────────────────────────────────────
+  "Acana Cat Grasslands":                { url: "/products/acana-cat-grasslands-4-5kg",     bags: [4500],                ppkg: 12 },
+  "Acana Cat Wild Prairie":              { url: "/products/acana-cat-wild-prairie-4-5kg",   bags: [4500],                ppkg: 12 },
+  "Acana Cat Kitten":                    { url: "/products/acana-kitten-chickherring",       bags: [340,1800],            ppkg: 16 },
+  // ── KATTENBAK ─────────────────────────────────────────────────────────────
+  "BioKat's Classic":                   { url: "/products/biokats-classic",                bags: [10000,18000],         ppkg: null, unit:"L", usage:"±30 dagen per bak" },
+  "BioKat's Classic 2-pak":             { url: "/products/biokats-classic-2-stuks-voor-25",bags: [20000],               ppkg: null, unit:"L", usage:"±60 dagen (2 zakken van 10L)" },
+  "BioKat's Fresh":                     { url: "/products/biokats-fresh",                  bags: [10000,18000],         ppkg: null, unit:"L", usage:"±30 dagen per bak" },
+  "BioKat's Diamond Classic":           { url: "/products/biokaats-diamond-classic-8ltr",  bags: [8000],                ppkg: null, unit:"L", usage:"±25 dagen per bak" },
+  "BioKat's Diamond Fresh":             { url: "/products/biokaats-diamond-fresh-8ltr",    bags: [8000],                ppkg: null, unit:"L", usage:"±25 dagen per bak" },
+  "BioKat's Micro Classic":             { url: "/products/biokaats-micro-classic-14ltr",   bags: [14000],               ppkg: null, unit:"L", usage:"±35 dagen per bak" },
+  "BioKat's Micro Fresh":               { url: "/products/biokaats-micro-fresh-14ltr",     bags: [14000],               ppkg: null, unit:"L", usage:"±35 dagen per bak" },
+  "BioKat's Natural Care":              { url: "/products/biokaats-natural-care-30ltr",    bags: [30000],               ppkg: null, unit:"L", usage:"±75 dagen per bak" },
+  "Catsan Hygiëne Plus":                 { url: "/products/catsan-hygiene-plus-kattenbakvulling-20-ltr", bags: [20000], ppkg: null, unit:"L", usage:"±30 dagen per bak" },
+  "Agriselect Basic Grey":               { url: "/products/agriselect-basic-grey-kattenbakvulling-20-ltr", bags: [20000], ppkg: null, unit:"L", usage:"±30 dagen per bak" },
+  // ── SNACKS ────────────────────────────────────────────────────────────────
+  "I Am Chicken Bites":                  { url: "/products/i-am-chicken-bites-300-gr",      bags: [300],                 ppkg: null, usage:"Als beloning naast hoofdvoer" },
+  "Inaba Churu Chicken":                 { url: "/products/inaba-churu-chicken-4x14-gr",    bags: [56],                  ppkg: null, usage:"Als smaakmaker of beloning" },
+  "Advance Dental Stick Mini":           { url: "/products/advance-dental-stick-mini-7st-90g",    bags: [90],            ppkg: null, usage:"1 stick per dag — kleine honden" },
+  "Advance Dental Stick Medium/Maxi":    { url: "/products/adv-dental-stick-medmax-7st-180gr",    bags: [180],           ppkg: null, usage:"1 stick per dag — middelgrote/grote honden" },
+  "Advance Hypoallergenic Snack":        { url: "/products/advance-hypoallergenic-snack-150gr",   bags: [150],           ppkg: null, usage:"Voor honden met voedselallergie" },
+  "Advance Sensitive Snack":             { url: "/products/advance-sensitive-snack-7x150gr",       bags: [150],           ppkg: null, usage:"Voor honden met gevoelige spijsvertering" },
+  "Advance Weight Control Snack":        { url: "/products/adv-weight-control-snack-7x150gr",      bags: [150],           ppkg: null, usage:"Voor honden op dieet" },
+  "Advance Articular Stick":             { url: "/products/advance-articular-stick-155gr",          bags: [155],           ppkg: null, usage:"Ondersteunt gewrichten" },
+  "Renske Hartjes Zalm Mini":            { url: "/products/renske-hond-gezonde-beloning-mini-hartjes-zalm-100-gr", bags: [100], ppkg: null, usage:"Gezonde beloning kleine honden" },
+  "Josera Crunchies Chicken":            { url: "/products/josera-crunchies-chicken-60-gr",  bags: [60],                  ppkg: null, usage:"Als beloning" },
+  "Josera Meat Bites Mini":              { url: "/products/josera-meat-bites-mini-chicken-70-gr", bags: [70],             ppkg: null, usage:"Als beloning kleine honden" },
+  "Catisfactions Kip":                   { url: "/products/catisfactions-kip-60-gr",         bags: [60],                  ppkg: null, usage:"Als kattenbeloning" },
 };
 
 const G="#2D6A4F", GL="#B7E4C7", GC="#F8F4EE", GD="#1B3A2E";
@@ -56,9 +132,15 @@ FOTOBEOORDELING: Analyseer ras zo goed mogelijk. Wees eerlijk bij twijfel. Ga da
 GEZONDHEIDSKLACHTEN: Verwijs ALTIJD eerst naar een dierenarts bij plasproblemen, diarree, braken, huidproblemen of gedragsverandering. Geef daarna aanvullend voedingsadvies. Speel nooit de rol van dierenarts.
 
 ASSORTIMENT:
-Hond: Royal Canin Mini/Medium/Maxi Adult, Mini/Medium/Maxi Puppy, Medium/Maxi Senior, Advance Adult Medium, Advance Sensitive, Acana Grasslands, Acana Senior's Recipe
-Kat: Royal Canin Indoor Adult, Sterilised, Kitten, Senior Consult Stage 1, Persian Adult, Advance Adult Sterilised, Acana Wild Prairie Cat
-Kattenbak: BioKat's Classic, BioKat's Bianco Fresh, BioKat's Micro
+HOND — Royal Canin: X-Small Adult, Mini Adult, Mini Adult 8+, Mini Ageing 12+, Mini Light Weight Care, Mini Puppy, Medium Adult, Medium Puppy, Maxi Adult, Maxi Puppy, Chihuahua Adult, Dachshund Adult, French Bulldog Adult, Labrador Retriever Adult, Sensible, Oral Sensitive
+HOND — Advance: Mini Adult, Mini Sensitive, Mini Senior, Mini Light, Medium Adult, Medium Senior, Maxi Adult, Maxi Senior, Maxi Light, Sensitive Lamb/Rice, Sensitive Salmon/Rice, Puppy Mini/Medium/Maxi, French Bulldog Adult, Labrador Retriever Adult
+HOND — Acana: Dog Adult, Dog Adult Small Breed, Dog Adult Large Breed, Dog Senior, Dog Puppy, Dog Puppy Large Breed, Dog Light & Fit, Dog Sport & Agility, Classics Classic Red, Classics Prairie Poultry, Classics Wild Coast, HP Grasslands/Pacifica/Wild Prairie/Ranchlands, Singles Free-Run Duck/Grass-Fed Lamb/Yorkshire Pork
+KAT — Royal Canin: Babycat, Kitten, Indoor, Fit, Outdoor, Sterilised, British Shorthair, Maine Coon, Urinary Care
+KAT — Advance: Cat Adult Chicken/Rice, Cat Kitten, Cat Sterilized Turkey, Cat Sterilized Hairball, Cat Sterilized Sensitive Salmon, Cat Sterilized Senior 10+
+KAT — Acana: Cat Grasslands, Cat Wild Prairie, Cat Kitten
+KATTENBAK: BioKat's Classic, BioKat's Fresh, BioKat's Diamond Classic/Fresh, BioKat's Micro Classic/Fresh, BioKat's Natural Care, Catsan Hygiëne Plus, Agriselect Basic Grey
+SNACKS HOND: I Am Chicken Bites, Advance Dental Stick Mini/Medium Maxi, Advance Hypoallergenic/Sensitive/Weight Control Snack, Advance Articular Stick, Renske Hartjes Zalm Mini, Josera Crunchies/Meat Bites
+SNACKS KAT: Catisfactions Kip, Inaba Churu Chicken
 Snacks: Royal Canin Dental Snacks, I Am Chicken Bites 300g
 
 TWEE PRODUCTEN — VERPLICHT bij voer (niet bij kattenbak):
