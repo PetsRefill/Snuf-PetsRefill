@@ -61,7 +61,7 @@ LEVENSFASE OVERGANGEN:
 
 function buildSystemPrompt(products, returningPet) {
   const byCat = {};
-  (products || []).forEach(p => {
+  (Array.isArray(products) ? products : []).forEach(p => {
     if (!byCat[p.category]) byCat[p.category] = [];
     byCat[p.category].push(p);
   });
@@ -314,7 +314,8 @@ const INIT = [{ role:"assistant", content:"Hoi! 👋 Ik ben Snuf, de AI voedings
 
 export default function App() {
   const [products,setProducts]=useState([]);
-  const [phase,setPhase]=useState("phone");
+  const [phase,setPhase]=useState("animal");
+  const [showPhoneLookup,setShowPhoneLookup]=useState(true);
   const [api,setApi]=useState([]);
   const [display,setDisplay]=useState(INIT);
   const [calc,setCalc]=useState(null);
@@ -330,7 +331,12 @@ export default function App() {
   const inputRef=useRef(null);
   const fileRef=useRef(null);
 
-  useEffect(()=>{ fetch("/api/products").then(r=>r.json()).then(setProducts).catch(()=>{}); },[]);
+  useEffect(()=>{
+    fetch("/api/products")
+      .then(r=>{ if(!r.ok) throw new Error("products fetch failed"); return r.json(); })
+      .then(d=>{ if(Array.isArray(d)) setProducts(d); })
+      .catch(()=>{ /* Supabase niet beschikbaar — Snuf werkt door zonder live productenlijst */ });
+  },[]);
   useEffect(()=>{ bottomRef.current?.scrollIntoView({behavior:"smooth"}); },[display,loading,calc]);
   useEffect(()=>{ if(!loading&&phase==="chat"&&!done)inputRef.current?.focus(); },[loading,phase,done]);
 
@@ -354,13 +360,6 @@ export default function App() {
     } catch { setLoading(false); setGenFinal(false); push("assistant","Er ging iets mis. Probeer het opnieuw."); }
   };
 
-  const handleFound = data => {
-    const pet = data.customer?.pets?.[0];
-    if(pet) { setReturningPet(pet); setPetName(pet.name); }
-    setPhase("chat");
-    const msgs=[{role:"user",content:pet?`Ik ben terug voor ${pet.name}.`:"Ik wil advies voor mijn dier."}];
-    setApi(msgs); callClaude(msgs);
-  };
 
   const handleAnimal = a => {
     setAnimal(a); push("user",`${a} 🐾`);
@@ -387,8 +386,9 @@ export default function App() {
   };
 
   const reset = () => {
-    setPhase("phone"); setApi([]); setDisplay(INIT); setInput(""); setLoading(false);
-    setGenFinal(false); setDone(false); setCalc(null); setAnimal(""); setPetName(""); setReturningPet(null);
+    setPhase("animal"); setApi([]); setDisplay(INIT); setInput(""); setLoading(false);
+    setGenFinal(false); setDone(false); setCalc(null); setAnimal(""); setPetName(""); 
+    setReturningPet(null); setShowPhoneLookup(true);
   };
 
   return (
@@ -408,7 +408,9 @@ export default function App() {
         </div>
 
         <div style={{ background:"#EDE9E2", padding:"13px 10px", minHeight:340, maxHeight:460, overflowY:"auto", display:"flex", flexDirection:"column" }}>
-          {phase==="phone"&&<PhoneLookup onFound={handleFound} onSkip={()=>setPhase("animal")}/>}
+          {phase==="animal"&&showPhoneLookup&&(
+            <PhoneLookup onFound={data=>{ const pet=data.customer?.pets?.[0]; if(pet){setReturningPet(pet);setPetName(pet.name);} setShowPhoneLookup(false); setPhase("chat"); const msgs=[{role:"user",content:pet?`Ik ben terug voor ${pet.name}.`:"Ik wil advies."}]; setApi(msgs); callClaude(msgs); }} onSkip={()=>setShowPhoneLookup(false)}/>
+          )}
           {display.map((msg,i)=>(
             <Bubble key={msg.id} msg={msg} isNew={msg.id===lastId}
               calcData={done&&i===display.length-1&&msg.role==="assistant"?calc:null}
@@ -426,7 +428,7 @@ export default function App() {
         </div>
 
         <div style={{ background:"#fff", borderRadius:"0 0 14px 14px", padding:10, borderTop:"1px solid rgba(0,0,0,.05)", boxShadow:"0 4px 16px rgba(0,0,0,.07)" }}>
-          {phase==="animal"&&(
+          {phase==="animal"&&!showPhoneLookup&&(
             <div style={{ display:"flex", gap:8 }}>
               {["Hond 🐕","Kat 🐈"].map(opt=>(
                 <button key={opt} onClick={()=>handleAnimal(opt.split(" ")[0])}
