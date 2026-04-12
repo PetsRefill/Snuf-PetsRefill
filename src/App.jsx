@@ -136,9 +136,12 @@ EX_NAME:[naam of GEEN]
 EX_LABEL:[bijv. Dagelijkse dental snack]
 ---EINDE---
 
-💬 Wil je [naam] aanmelden voor een bezorgherinnering? Dan seint Marc je automatisch op tijd.
+Sluit het eindadvies altijd af met deze vaste serviceinfo (compacte versie, na het advies):
+"📦 Bestel vóór donderdag 12:00 — bezorging zaterdag aan huis in Westland.
+🚗 Eerste levering gratis met code REFILL · Abonneer & bespaar 5%
+💬 Vragen? App Marc — geen callcenter, gewoon direct contact."
 
-Vraag daarna vriendelijk en optioneel: "Mag ik je naam en WhatsApp-nummer opslaan zodat ik [naam] de volgende keer direct herken?"
+Vraag daarna vriendelijk en optioneel of de klant zijn profiel wil opslaan voor een bezorgherinnering.
 
 Toon: warm, persoonlijk, kort. Je/jouw.`;
 }
@@ -426,6 +429,26 @@ function PhoneLookup({ onFound, onSkip }) {
   );
 }
 
+function ServiceInfo() {
+  const G = "#2D6A4F", GL = "#B7E4C7";
+  const items = [
+    { icon:"📦", text:"Bestel voor donderdag 12:00 · bezorging zaterdag" },
+    { icon:"🚗", text:"Eerste levering gratis met code REFILL" },
+    { icon:"💳", text:"Abonneer & bespaar 5%" },
+    { icon:"💬", text:"Vragen? App Marc — geen callcenter" },
+  ];
+  return (
+    <div style={{ background:"#2D6A4F", borderRadius:10, padding:"10px 14px", margin:"10px 0 6px", display:"flex", flexDirection:"column", gap:5 }}>
+      {items.map((it,i) => (
+        <div key={i} style={{ display:"flex", alignItems:"center", gap:8, fontSize:11, color:"#fff", fontFamily:"Georgia,serif" }}>
+          <span>{it.icon}</span>
+          <span style={{ color:GL }}>{it.text}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Disclaimer() {
   const [open,setOpen]=useState(false);
   return (
@@ -586,6 +609,7 @@ export default function App() {
           )}
           {done&&<button onClick={reset} style={{ width:"100%", padding:"10px", borderRadius:10, border:`2px solid ${G}`, background:"transparent", color:G, fontFamily:"Georgia,serif", fontSize:14, fontWeight:600, cursor:"pointer" }}>🔄 Nieuw dier adviseren</button>}
         </div>
+        <ServiceInfo/>
         <Disclaimer/>
       </div>
     </div>
