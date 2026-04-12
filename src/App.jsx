@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 // ─────────────────────────────────────────────────────────────────────────────
 // ⚙️  INSTELLINGEN — alleen deze twee regels hoef je aan te passen
 // ─────────────────────────────────────────────────────────────────────────────
-const WHATSAPP_NUMBER = "31628619699"; // ← jouw zakelijk WhatsApp-nummer (zonder + of spaties)
+const WHATSAPP_NUMBER = "31600000000"; // ← jouw zakelijk WhatsApp-nummer (zonder + of spaties)
 // Product-URL's: vul de juiste Shopify-slug in nadat je live bent.
 // Ga in Shopify naar elk product → kopieer het stukje na /products/ in de URL.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -266,7 +266,7 @@ export default function App() {
     setLoading(true);
     if (final) setGeneratingFinal(true);
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1400, system: SYSTEM, messages: msgs }),
