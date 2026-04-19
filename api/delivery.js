@@ -1,13 +1,12 @@
-// api/delivery.js
+// api/delivery.js — v2
 // Unified endpoint voor het abonnements-mechanisme:
 //   POST { action: "create",  customer_id, pet_id, recommendation } → eerste levering plannen
 //   POST { action: "confirm", reminder_id }  → volgende levering aanmaken, reminder afsluiten
-//   POST { action: "skip",    reminder_id, weeks? } → levering overslaan, reminder verplaatsen
+//   POST { action: "skip",    reminder_id, weeks? } → levering overslaan
 //   POST { action: "cancel",  reminder_id } → abonnement op dit item stoppen
 //
-// Wordt aangeroepen door:
-// - Snuf-frontend als advies compleet is (create)
-// - De bevestig-links in reminder-emails (confirm/skip/cancel)
+// v2: accepteert zowel het lowercase format van App.jsx parseData (p1h, p1n, p1d, ...)
+//     als het uppercase format (P1_HANDLE, P1_NAME, P1_DOSIS, ...).
 
 const SB = () => process.env.SUPABASE_URL;
 const KEY = () => process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
@@ -19,10 +18,9 @@ const headers = () => ({
   Prefer: "return=representation",
 });
 
-// Eerstvolgende zaterdag (inclusief vandaag als het zaterdag is en voor 10:00)
 function nextSaturday(fromDate = new Date()) {
   const d = new Date(fromDate);
-  const day = d.getDay(); // 0=zo, 6=za
+  const day = d.getDay();
   const addDays = day === 6 ? 0 : (6 - day + 7) % 7 || 7;
   d.setDate(d.getDate() + addDays);
   return d.toISOString().slice(0, 10);
@@ -34,7 +32,6 @@ function addDays(dateStr, days) {
   return d.toISOString().slice(0, 10);
 }
 
-// Kies de zak die het dichtst bij 30 dagen voorraad zit
 function pickBagSize(product, dailyDoseG) {
   if (!product.bag_sizes_g || !product.bag_sizes_g.length) return null;
   if (!dailyDoseG) return product.bag_sizes_g[0];
@@ -50,52 +47,80 @@ async function sb(path, opts = {}) {
   return res.status === 204 ? null : res.json();
 }
 
+// Normaliseer beide recommendation-formats naar één interne structuur
+function normalizeRecommendation(r) {
+  if (!r) return null;
+  return {
+    petName: r.name || r.NAAM || null,
+    sessionId: r.session_id || r.SESSION_ID || null,
+    items: [
+      {
+        handle: r.p1h || r.P1_HANDLE,
+        name: r.p1n || r.P1_NAME,
+        dose: Number(r.p1d || r.P1_DOSIS) || 0,
+        role: "primary",
+      },
+      {
+        handle: r.p2h || r.P2_HANDLE,
+        name: r.p2n || r.P2_NAME,
+        dose: Number(r.p2d || r.P2_DOSIS) || 0,
+        role: "alternative",
+      },
+      {
+        handle: r.exh || r.EX_HANDLE,
+        name: r.exn || r.EX_NAME,
+        dose: 0,
+        role: "extra",
+      },
+    ].filter(it => it.handle && it.handle !== "GEEN" && it.name && it.name !== "GEEN"),
+  };
+}
+
 // ─── ACTION: CREATE ──────────────────────────────────────────────────────────
 async function createDelivery({ customer_id, pet_id, recommendation }) {
   if (!customer_id || !recommendation) throw new Error("customer_id + recommendation vereist");
 
-  // Verzamel alle producten uit de recommendation (P1 + P2 + EX)
-  const handles = [recommendation.P1_HANDLE, recommendation.P2_HANDLE, recommendation.EX_HANDLE]
-    .filter(h => h && h !== "GEEN");
-  if (!handles.length) throw new Error("Geen producten in recommendation");
+  const norm = normalizeRecommendation(recommendation);
+  if (!norm || !norm.items.length) throw new Error("Geen producten in recommendation");
 
+  const handles = norm.items.map(it => it.handle);
   const products = await sb(
     `products?shopify_handle=in.(${handles.map(encodeURIComponent).join(",")})&select=*`
   );
-  if (!products.length) throw new Error("Geen producten gevonden voor deze handles");
+  if (!products.length) throw new Error(`Geen producten gevonden voor handles: ${handles.join(", ")}`);
 
   const scheduledFor = nextSaturday();
 
-  // 1. Delivery aanmaken
   const [delivery] = await sb("deliveries", {
     method: "POST",
     body: JSON.stringify({
       customer_id,
       scheduled_for: scheduledFor,
       status: "scheduled",
-      notes: `Auto-gegenereerd uit Snuf-advies voor ${recommendation.NAAM || "dier"}`,
+      notes: `Auto-gegenereerd uit Snuf-advies voor ${norm.petName || "dier"}`,
     }),
   });
 
   const items = [];
   const reminders = [];
 
-  // 2. Voor elk aanbevolen product een delivery_item + reminder
-  const productMap = { P1: recommendation.P1_HANDLE, P2: recommendation.P2_HANDLE, EX: recommendation.EX_HANDLE };
-  const doseMap = { P1: recommendation.P1_DOSIS, P2: recommendation.P2_DOSIS, EX: 0 };
-  const nameMap = { P1: recommendation.P1_NAME, P2: recommendation.P2_NAME, EX: recommendation.EX_NAME };
-
-  for (const key of ["P1", "P2", "EX"]) {
-    const handle = productMap[key];
-    if (!handle || handle === "GEEN") continue;
-    const product = products.find(p => p.shopify_handle === handle);
+  for (const it of norm.items) {
+    const product = products.find(p => p.shopify_handle === it.handle);
     if (!product) continue;
 
-    const dailyDoseG = Number(doseMap[key]) || 0;
+    const dailyDoseG = it.dose;
+    const isSnack  = product.category === "snack";
+    const isLitter = product.category === "kattenbak" || product.unit === "L";
     const bagSizeG = pickBagSize(product, dailyDoseG) || 0;
-    const daysSupply = dailyDoseG > 0 && bagSizeG > 0 
-      ? Math.floor(bagSizeG / dailyDoseG)
-      : (product.category === "kattenbak" ? (product.litter_days || 30) : 30);
+
+    let daysSupply;
+    if (isLitter) {
+      daysSupply = product.litter_days || 30;
+    } else if (isSnack || !dailyDoseG || !bagSizeG) {
+      daysSupply = 30;
+    } else {
+      daysSupply = Math.floor(bagSizeG / dailyDoseG);
+    }
 
     const [item] = await sb("delivery_items", {
       method: "POST",
@@ -111,7 +136,6 @@ async function createDelivery({ customer_id, pet_id, recommendation }) {
     });
     items.push(item);
 
-    // Reminder: 3 dagen voor het op is, vraag om bevestiging voor volgende levering
     const runsOutAt = addDays(scheduledFor, daysSupply);
     const remindAt = addDays(runsOutAt, -3);
 
@@ -123,18 +147,17 @@ async function createDelivery({ customer_id, pet_id, recommendation }) {
         delivery_item_id: item.id,
         remind_at: remindAt,
         runs_out_at: runsOutAt,
-        product_name: nameMap[key] || product.name,
+        product_name: it.name,
         channel: "email",
         status: "pending",
-        subject: `${nameMap[key] || product.name} is bijna op — bevestig volgende levering`,
+        subject: `${it.name} is bijna op — bevestig volgende levering`,
       }),
     });
     reminders.push(reminder);
   }
 
-  // 3. Markeer snuf_session als verwerkt (als die meegegeven is)
-  if (recommendation.session_id) {
-    await sb(`snuf_sessions?id=eq.${recommendation.session_id}`, {
+  if (norm.sessionId) {
+    await sb(`snuf_sessions?id=eq.${norm.sessionId}`, {
       method: "PATCH",
       body: JSON.stringify({ processed: true, processed_delivery_id: delivery.id }),
     });
@@ -156,7 +179,6 @@ async function confirmReminder({ reminder_id }) {
   const item = reminder.delivery_items;
   const scheduledFor = nextSaturday(new Date(reminder.runs_out_at));
 
-  // Nieuwe levering aanmaken voor dezelfde klant
   const [newDelivery] = await sb("deliveries", {
     method: "POST",
     body: JSON.stringify({
@@ -167,7 +189,6 @@ async function confirmReminder({ reminder_id }) {
     }),
   });
 
-  // Zelfde product, zelfde zak
   const [newItem] = await sb("delivery_items", {
     method: "POST",
     body: JSON.stringify({
@@ -181,7 +202,6 @@ async function confirmReminder({ reminder_id }) {
     }),
   });
 
-  // Nieuwe reminder plannen voor het volgende op-moment
   const runsOutAt = addDays(scheduledFor, item.days_supply || 30);
   const remindAt = addDays(runsOutAt, -3);
 
@@ -200,7 +220,6 @@ async function confirmReminder({ reminder_id }) {
     }),
   });
 
-  // Oude reminder afsluiten
   await sb(`reminders?id=eq.${reminder_id}`, {
     method: "PATCH",
     body: JSON.stringify({
