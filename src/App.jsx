@@ -618,7 +618,34 @@ export default function App() {
                 style={{ width:38, height:38, borderRadius:10, border:"none", background:loading||!input.trim()?"#ccc":G, color:"#fff", fontSize:18, cursor:"pointer", flexShrink:0 }}>→</button>
             </div>
           )}
-          {done&&<button onClick={reset} style={{ width:"100%", padding:"10px", borderRadius:10, border:`2px solid ${G}`, background:"transparent", color:G, fontFamily:"Georgia,serif", fontSize:14, fontWeight:600, cursor:"pointer" }}>🔄 Nieuw dier adviseren</button>}
+          {done&&(
+  <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+    <button onClick={async()=>{
+      if(!calc) return;
+      const customerId = returningPet?.customer_id;
+      const petId = returningPet?.id;
+      if(!customerId){ alert("Sla eerst je gegevens op (telefoon + naam)."); return; }
+      try {
+        const r = await fetch("/api/delivery",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({action:"create",customer_id:customerId,pet_id:petId,recommendation:calc})
+        });
+        const d = await r.json();
+        if(d.success){
+          alert(`Gelukt! Eerste levering staat gepland. We sturen je een reminder over ~${d.items[0]?.days_supply||30} dagen.`);
+        } else {
+          alert("Er ging iets mis: "+(d.error||"onbekende fout"));
+        }
+      } catch(e){ alert("Netwerkfout: "+e.message); }
+    }} style={{ width:"100%", padding:"12px", borderRadius:10, border:"none", background:G, color:"#fff", fontFamily:"Georgia,serif", fontSize:14, fontWeight:700, cursor:"pointer" }}>
+      ✓ Start abonnement — plan eerste levering
+    </button>
+    <button onClick={reset} style={{ width:"100%", padding:"10px", borderRadius:10, border:`2px solid ${G}`, background:"transparent", color:G, fontFamily:"Georgia,serif", fontSize:14, fontWeight:600, cursor:"pointer" }}>
+      🔄 Nieuw dier adviseren
+    </button>
+  </div>
+)}
         </div>
         <ServiceInfo/>
         <Disclaimer/>
