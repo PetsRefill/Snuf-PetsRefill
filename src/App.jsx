@@ -238,7 +238,7 @@ function RequestForm({ petName, petId, customerId }) {
 
     // Sla op in Supabase
     try {
-      await fetch("/api/request", {
+      await fetch(/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -626,10 +626,10 @@ export default function App() {
       const petId = returningPet?.id;
       if(!customerId){ alert("Sla eerst je gegevens op (telefoon + naam)."); return; }
       try {
-        const r = await fetch("/api/delivery",{
+const r = await fetch("https://ftmyxsnrzudigtlrgntc.supabase.co/functions/v1/create-delivery",{
           method:"POST",
           headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({action:"create",customer_id:customerId,pet_id:petId,recommendation:calc})
+          body:JSON.stringify({customer_id:customerId,pet_id:petId,recommendation:calc})
         });
         const d = await r.json();
         if(d.success){
